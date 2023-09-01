@@ -1,0 +1,47 @@
+SYSTEM pwa {
+
+/* x1(k+1)=(-mu1*(min(x1(k)-u1(k),0)+u1(k))+mu2*(min(x2(k)-u2(k),0)+u2(k)))*Ts+x1(k);
+   x2(k+1)=(mu1*(min(x1(k)-u1(k),0)+u1(k))-mu2*(min(x2(k)-u2(k),0)+u2(k)))*Ts+x2(k);
+   
+   
+   min1=x1(k)-u1(k)<=0
+   min2=x2(k)-u2(k)<=0
+*/
+       
+INTERFACE {
+	STATE { REAL x1 [0,100];
+		REAL x2 [0,100];
+		}
+	INPUT { REAL u1 [0,10];
+            REAL u2 [0,10];
+		}
+	OUTPUT{ REAL y1;
+            REAL y2;
+		}
+	PARAMETER { 
+        REAL Ts=.1;
+	  	REAL mu1= 1;
+        REAL mu2= 1;
+	    	}
+	}
+
+IMPLEMENTATION {
+		AUX { REAL z1,z2; 
+		      BOOL min1;
+              BOOL min2;
+              }
+		AD  { min1=(x1-u1)<=0;
+              min2=(x2-u2)<=0; } 
+
+		DA  { z1 = {IF min1 THEN mu1*x1
+		            ELSE mu1*u1 };
+		      z2 = {IF min2 THEN mu2*x2
+		            ELSE mu2*u2 };  }
+		      
+	    CONTINUOUS { x1 = (-z1+z2)*Ts+x1;
+	      		     x2 = (z1-z2)*Ts+x2; }
+
+	    OUTPUT { y1 = x1;
+                 y2 = x2;  }
+	  }
+}
